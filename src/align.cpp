@@ -1080,6 +1080,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
    AlignStack as_bc; /* bit-colon */
    AlignStack as_at; /* attribute */
    AlignStack as_br; /* one-liner brace open */
+   AlignStack as_vt; /* virtual */
    bool       fp_active   = cpd.settings[UO_align_mix_var_proto].b;
    bool       fp_look_bro = false;
 
@@ -1138,6 +1139,8 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
    as_br.Start(myspan, mythresh);
    as_br.m_gap = cpd.settings[UO_align_single_line_brace_gap].n;
 
+   as_vt.Start(myspan, 0);
+
    bool did_this_line = false;
    pc = chunk_get_next(start);
    while ((pc != NULL) && ((pc->level >= start->level) || (pc->level == 0)))
@@ -1150,6 +1153,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
             as_bc.NewLines(pc->nl_count, true);
             as_at.NewLines(pc->nl_count, true);
             as_br.NewLines(pc->nl_count, true);
+            as_vt.NewLines(pc->nl_count, true);
          }
          pc = chunk_get_next(pc);
          continue;
@@ -1192,6 +1196,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
             as_bc.NewLines(sub_nl_count);
             as_at.NewLines(sub_nl_count);
             as_br.NewLines(sub_nl_count);
+            as_vt.NewLines(sub_nl_count);
             if (p_nl_count != NULL)
             {
                *p_nl_count += sub_nl_count;
@@ -1216,6 +1221,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
          as_bc.NewLines(pc->nl_count, isComment);
          as_at.NewLines(pc->nl_count, isComment);
          as_br.NewLines(pc->nl_count, isComment);
+         as_vt.NewLines(pc->nl_count, isComment);
          if (p_nl_count != NULL)
          {
             *p_nl_count += pc->nl_count;
@@ -1280,6 +1286,12 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
             did_this_line = true;
          }
       }
+      else if (chunk_is_virtual(pc))
+      {
+         as_vt.Add(pc);
+      }
+
+
       pc = chunk_get_next(pc);
    }
 
@@ -1287,6 +1299,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
    as_bc.End();
    as_at.End();
    as_br.End();
+   as_vt.End();
 
    return(pc);
 }

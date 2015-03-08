@@ -210,7 +210,6 @@ bool chunk_is_star(chunk_t *pc)
    return((pc != NULL) && (pc->len() == 1) && (pc->str[0] == '*') && (pc->type != CT_OPERATOR_VAL));
 }
 
-
 static_inline
 bool chunk_is_addr(chunk_t *pc)
 {
@@ -219,6 +218,11 @@ bool chunk_is_addr(chunk_t *pc)
            ((pc->len() == 1) && (pc->str[0] == '&') && (pc->type != CT_OPERATOR_VAL))));
 }
 
+static_inline
+bool chunk_is_virtual(chunk_t *pc)
+{
+    return((pc != NULL) && chunk_is_str(pc, "virtual", 7) && (pc->type == CT_QUALIFIER));
+}
 
 bool chunk_is_newline_between(chunk_t *start, chunk_t *end);
 
