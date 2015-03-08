@@ -24,6 +24,7 @@ void AlignStack::Start(int span, int thresh)
    m_aligned.Reset();
    m_skipped.Reset();
    m_span        = span;
+   m_commentSeq  = 0;
    m_thresh      = thresh;
    m_min_col     = 9999;
    m_max_col     = 0;
@@ -331,12 +332,15 @@ void AlignStack::Add(chunk_t *start, int seqnum)
 /**
  * Adds some newline and calls Flush() if needed
  */
-void AlignStack::NewLines(int cnt)
+void AlignStack::NewLines(int cnt, bool comment)
 {
    if (!m_aligned.Empty())
    {
       m_seqnum += cnt;
-      if (m_seqnum > (m_nl_seqnum + m_span))
+      if(comment && cnt > 0)
+          m_commentSeq += cnt;
+
+      if ((m_seqnum - m_commentSeq) > (m_nl_seqnum + m_span))
       {
          LOG_FMT(LAS, "Newlines<%d>-", cnt);
          Flush();
@@ -345,6 +349,9 @@ void AlignStack::NewLines(int cnt)
       {
          LOG_FMT(LAS, "Newlines<%d>\n", cnt);
       }
+
+      if(!comment && cnt > 0)
+          m_commentSeq = 0;
    }
 }
 

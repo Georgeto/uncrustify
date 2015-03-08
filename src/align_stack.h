@@ -23,6 +23,7 @@ public:
    int        m_max_col;
    int        m_min_col;
    int        m_span;
+   int        m_commentSeq;
    int        m_thresh;
    int        m_seqnum;
    int        m_nl_seqnum;
@@ -38,7 +39,7 @@ public:
       m_max_col(0), m_min_col(0), m_span(0), m_thresh(0), m_seqnum(0),
       m_nl_seqnum(0), m_gap(0), m_right_align(false),
       m_star_style(SS_IGNORE), m_amp_style(SS_IGNORE), m_skip_first(false),
-      m_last_added(0)
+      m_last_added(0), m_commentSeq(0)
    {
    }
 
@@ -49,7 +50,7 @@ public:
       m_nl_seqnum(ref.m_nl_seqnum), m_gap(ref.m_gap),
       m_right_align(ref.m_right_align), m_star_style(ref.m_star_style),
       m_amp_style(ref.m_amp_style), m_skip_first(ref.m_skip_first),
-      m_last_added(ref.m_last_added)
+      m_last_added(ref.m_last_added), m_commentSeq(ref.m_commentSeq)
    {
    }
 
@@ -59,7 +60,7 @@ public:
 
    void Start(int span, int threshold = 0);
    void Add(chunk_t *pc, int seqnum = 0);
-   void NewLines(int cnt);
+   void NewLines(int cnt, bool comment = false);
    void Flush();
    void Reset();
    void End();
