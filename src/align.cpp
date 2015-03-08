@@ -1158,6 +1158,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
       if (fp_active && !(pc->flags & PCF_IN_CLASS_BASE))
       {
          if ((pc->type == CT_FUNC_PROTO) ||
+             (pc->type == CT_FUNC_CLASS_PROTO) ||
              ((pc->type == CT_FUNC_DEF) &&
               cpd.settings[UO_align_single_line_func].b))
          {

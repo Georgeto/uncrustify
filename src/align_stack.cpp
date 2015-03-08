@@ -71,6 +71,9 @@ void AlignStack::ReAddSkipped()
  */
 void AlignStack::Add(chunk_t *start, int seqnum)
 {
+   if(start->type == CT_FUNC_CLASS_PROTO)
+       c_token_t add = start->type;
+
    LOG_FUNC_ENTRY();
    /* Assign a seqnum if needed */
    if (seqnum == 0)
@@ -159,9 +162,13 @@ void AlignStack::Add(chunk_t *start, int seqnum)
        * If align_on_tabstop=true, then SS_DANGLE is changed to SS_INCLUDE.
        */
 
-      if (cpd.settings[UO_align_on_tabstop].b && (m_star_style == SS_DANGLE))
+      StarStyle dst_style = SS_DANGLE;
+      if (cpd.settings[UO_align_on_tabstop].b)
       {
-         m_star_style = SS_INCLUDE;
+         if(m_star_style == SS_DANGLE)
+           m_star_style = SS_INCLUDE;
+
+         dst_style = SS_INCLUDE;
       }
 
       /* Find ref. Back up to the real item that is aligned. */
@@ -169,6 +176,7 @@ void AlignStack::Add(chunk_t *start, int seqnum)
       while (((prev = chunk_get_prev(prev)) != NULL) &&
              (chunk_is_star(prev) ||
               chunk_is_addr(prev) ||
+              chunk_is_token(prev, CT_DESTRUCTOR) ||
               (prev->type == CT_TPAREN_OPEN)))
       {
          /* do nothing - we want prev when this exits */
@@ -207,6 +215,16 @@ void AlignStack::Add(chunk_t *start, int seqnum)
          }
       }
 
+      if(dst_style != SS_IGNORE)
+      {
+         prev = chunk_get_prev(ali);
+         while (chunk_is_token(prev, CT_DESTRUCTOR))
+         {
+            ali  = prev;
+            prev = chunk_get_prev(ali);
+         }
+      }
+
       /* Tighten down the spacing between ref and start */
       if (!cpd.settings[UO_align_keep_extra_space].b)
       {
@@ -237,7 +255,8 @@ void AlignStack::Add(chunk_t *start, int seqnum)
          tmp = chunk_get_next(tmp);
       }
       if ((chunk_is_star(tmp) && (m_star_style == SS_DANGLE)) ||
-          (chunk_is_addr(tmp) && (m_amp_style == SS_DANGLE)))
+          (chunk_is_addr(tmp) && (m_amp_style == SS_DANGLE)) ||
+          (chunk_is_token(tmp, CT_DESTRUCTOR) && (dst_style == SS_DANGLE)))
       {
          col_adj = start->column - ali->column;
          gap     = start->column - (ref->column + ref->len());
@@ -364,8 +383,14 @@ void AlignStack::Flush()
       {
          tmp = chunk_get_next(tmp);
       }
+      StarStyle dst_style = SS_DANGLE;
+      if (cpd.settings[UO_align_on_tabstop].b)
+      {
+          dst_style = SS_INCLUDE;
+      }
       if ((chunk_is_star(tmp) && (m_star_style == SS_DANGLE)) ||
-          (chunk_is_addr(tmp) && (m_amp_style == SS_DANGLE)))
+          (chunk_is_addr(tmp) && (m_amp_style == SS_DANGLE)) ||
+          (chunk_is_token(tmp, CT_DESTRUCTOR) && (dst_style == SS_DANGLE)))
       {
          col_adj = pc->align.start->column - pc->column;
          gap     = pc->align.start->column - (pc->align.ref->column + pc->align.ref->len());
