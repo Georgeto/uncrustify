@@ -1033,7 +1033,8 @@ static void align_func_proto(int span)
       }
       else if ((pc->type == CT_FUNC_PROTO) ||
                ((pc->type == CT_FUNC_DEF) &&
-                cpd.settings[UO_align_single_line_func].b))
+                cpd.settings[UO_align_single_line_func].b) ||
+                (pc->type == CT_FUNC_CALL) && (pc->parent_type == CT_OPERATOR) )
       {
          if ((pc->parent_type == CT_OPERATOR) &&
              cpd.settings[UO_align_on_operator].b)
@@ -1081,6 +1082,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
    AlignStack as_at; /* attribute */
    AlignStack as_br; /* one-liner brace open */
    AlignStack as_vt; /* virtual */
+   AlignStack as_op; /* op brace */
    bool       fp_active   = cpd.settings[UO_align_mix_var_proto].b;
    bool       fp_look_bro = false;
 
@@ -1140,6 +1142,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
    as_br.m_gap = cpd.settings[UO_align_single_line_brace_gap].n;
 
    as_vt.Start(myspan, 0);
+   as_op.Start(myspan, 0);
 
    bool did_this_line = false;
    pc = chunk_get_next(start);
@@ -1154,6 +1157,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
             as_at.NewLines(pc->nl_count, true);
             as_br.NewLines(pc->nl_count, true);
             as_vt.NewLines(pc->nl_count, true);
+            as_op.NewLines(pc->nl_count, true);
          }
          pc = chunk_get_next(pc);
          continue;
@@ -1169,7 +1173,22 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
             LOG_FMT(LAVDB, "    add=[%s] line=%d col=%d level=%d\n",
                     pc->str.c_str(), pc->orig_line, pc->orig_col, pc->level);
 
-            as.Add(pc);
+            chunk_t* toadd;
+            if ((pc->parent_type == CT_OPERATOR) &&
+                cpd.settings[UO_align_on_operator].b)
+            {
+                toadd = chunk_get_prev_ncnl(pc);
+            }
+            else
+            {
+                toadd = pc;
+            }
+            as.Add(step_back_over_member(toadd));
+
+            if(toadd->type == CT_OPERATOR)
+                as_op.Add(chunk_get_next(pc));
+            //as.Add(toadd);
+
             fp_look_bro = (pc->type == CT_FUNC_DEF) &&
                           cpd.settings[UO_align_single_line_brace].b;
          }
@@ -1197,6 +1216,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
             as_at.NewLines(sub_nl_count);
             as_br.NewLines(sub_nl_count);
             as_vt.NewLines(sub_nl_count);
+            as_op.NewLines(pc->nl_count, true);
             if (p_nl_count != NULL)
             {
                *p_nl_count += sub_nl_count;
@@ -1222,6 +1242,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
          as_at.NewLines(pc->nl_count, isComment);
          as_br.NewLines(pc->nl_count, isComment);
          as_vt.NewLines(pc->nl_count, isComment);
+         as_op.NewLines(pc->nl_count, isComment);
          if (p_nl_count != NULL)
          {
             *p_nl_count += pc->nl_count;
@@ -1300,6 +1321,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
    as_at.End();
    as_br.End();
    as_vt.End();
+   as_op.End();
 
    return(pc);
 }

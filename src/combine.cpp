@@ -2985,10 +2985,10 @@ static void mark_function(chunk_t *pc)
    if (pc->parent_type == CT_OPERATOR)
    {
       pc_op = chunk_get_prev_type(pc, CT_OPERATOR, pc->level);
-      if ((pc_op != NULL) && (pc_op->flags & PCF_EXPR_START))
-      {
-         set_chunk_type(pc, CT_FUNC_CALL);
-      }
+      ////if ((pc_op != NULL) && (pc_op->flags & PCF_EXPR_START))
+      //{
+      //   set_chunk_type(pc, CT_FUNC_CALL);
+      //}
       if (cpd.lang_flags & LANG_CPP)
       {
          tmp = pc;
