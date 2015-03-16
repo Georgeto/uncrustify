@@ -1216,7 +1216,7 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
             as_at.NewLines(sub_nl_count);
             as_br.NewLines(sub_nl_count);
             as_vt.NewLines(sub_nl_count);
-            as_op.NewLines(pc->nl_count, true);
+            as_op.NewLines(pc->nl_count);
             if (p_nl_count != NULL)
             {
                *p_nl_count += sub_nl_count;
@@ -1237,6 +1237,11 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
          fp_look_bro   = false;
          did_this_line = false;
          bool isComment = chunk_is_comment(chunk_get_prev(pc)) && chunk_is_newline(chunk_get_prev(chunk_get_prev(pc)));
+         chunk_t * last_using = chunk_get_prev_type(pc, CT_USING, pc->level);
+         if(last_using != 0 )
+            if(chunk_get_next_nl(last_using) == pc)
+                isComment = true;
+
          as.NewLines(pc->nl_count, isComment);
          as_bc.NewLines(pc->nl_count, isComment);
          as_at.NewLines(pc->nl_count, isComment);
