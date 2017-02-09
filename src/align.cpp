@@ -1216,7 +1216,8 @@ static chunk_t *align_var_def_brace(chunk_t *start, int span, int *p_nl_count)
             as_at.NewLines(sub_nl_count);
             as_br.NewLines(sub_nl_count);
             as_vt.NewLines(sub_nl_count);
-            as_op.NewLines(pc->nl_count);
+            if(pc != NULL)
+                as_op.NewLines(pc->nl_count);
             if (p_nl_count != NULL)
             {
                *p_nl_count += sub_nl_count;
